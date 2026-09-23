@@ -1,191 +1,323 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Connect4Society Registration</title>
+  <title>Connect4Society | Social Work Registration</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        body {
-            min-height: 100vh;
-            background: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #e8f5e9);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: white;
-            padding: 30px;
-            border-radius: 18px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-        }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
+    .logo {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #16803c;
+      margin-bottom: 8px;
+    }
 
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 25px;
-        }
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+      font-size: 15px;
+    }
 
-        label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 6px;
-            font-weight: bold;
-        }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 7px;
+      color: #333;
+    }
 
-        input {
-            width: 100%;
-            padding: 13px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 15px;
-        }
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 18px;
+      border: 1px solid #ccc;
+      border-radius: 9px;
+      font-size: 15px;
+      outline: none;
+    }
 
-        button {
-            width: 100%;
-            margin-top: 25px;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            background: #111;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
+    input:focus {
+      border-color: #16803c;
+    }
 
-        button:hover {
-            background: #333;
-        }
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 9px;
+      background: #16803c;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-        .success {
-            display: none;
-            text-align: center;
-            margin-top: 25px;
-            padding: 20px;
-            background: #f0f8f2;
-            border-radius: 10px;
-        }
+    button:hover {
+      background: #126b32;
+    }
 
-        .quote {
-            margin-top: 15px;
-            font-style: italic;
-            color: #333;
-        }
-    </style>
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
+    .success {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .success h2 {
+      color: #16803c;
+      margin-bottom: 15px;
+    }
+
+    .quote {
+      font-size: 18px;
+      line-height: 1.5;
+      color: #444;
+      font-style: italic;
+      margin-top: 10px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      color: #777;
+      font-size: 13px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
+  <div class="container">
 
-    <h1>Connect4Society</h1>
+    <div class="logo">
+      Connect4Society
+    </div>
 
-    <p class="subtitle">
-        Student Social Work Registration
-    </p>
+    <div class="subtitle">
+      Register for Social Work & Community Activities
+    </div>
 
     <form id="registrationForm">
 
-        <label>Name [USN]</label>
-        <input
-            type="text"
-            id="name"
-            placeholder="Enter your name and USN"
-            required
-        >
+      <label for="name">Name [USN]</label>
+      <input
+        type="text"
+        id="name"
+        placeholder="Enter your name and USN"
+        required
+      >
 
-        <label>College Name</label>
-        <input
-            type="text"
-            id="college"
-            placeholder="Enter your college name"
-            required
-        >
+      <label for="college">College Name</label>
+      <input
+        type="text"
+        id="college"
+        placeholder="Enter your college name"
+        required
+      >
 
-        <label>E-mail ID</label>
-        <input
-            type="email"
-            id="email"
-            placeholder="Enter your email"
-            required
-        >
+      <label for="email">E-mail ID</label>
+      <input
+        type="email"
+        id="email"
+        placeholder="Enter your email"
+        required
+      >
 
-        <label>Contact Number</label>
-        <input
-            type="tel"
-            id="contact"
-            placeholder="Enter your 10-digit number"
-            required
-        >
+      <label for="contact">Contact Number</label>
+      <input
+        type="tel"
+        id="contact"
+        placeholder="Enter your contact number"
+        required
+      >
 
-        <button type="submit">
-            Register for Social Work
-        </button>
+      <button type="submit" id="submitButton">
+        Register for Social Work
+      </button>
 
     </form>
 
     <div class="success" id="successMessage">
 
-        <h2>Thank You! ❤️</h2>
+      <h2>Registration Successful! 🎉</h2>
 
-        <p>
-            Your registration has been successfully submitted.
-        </p>
+      <p>
+        Thank you for registering for social work.
+      </p>
 
-        <p class="quote" id="quote"></p>
+      <p class="quote" id="quote"></p>
 
     </div>
 
-</div>
+    <div class="footer">
+      Connect4Society • Making a difference together
+    </div>
 
-<script>
+  </div>
 
-const quotes = [
-    "Small acts of kindness can create a big change.",
-    "Service to others is one of the most meaningful things we can do.",
-    "Be the reason someone believes in kindness again.",
-    "Together, small efforts can create a stronger community.",
-    "Your time and kindness can make someone's day better.",
-    "A helping hand can make a difficult journey easier.",
-    "Social work begins with caring about people around us.",
-    "Every positive action creates a ripple of change.",
-    "The world becomes better when we choose to help each other.",
-    "Your contribution matters more than you think."
-];
 
-document.getElementById("registrationForm").addEventListener("submit", function(event) {
+  <script>
 
-    event.preventDefault();
+    // ==========================================
+    // GOOGLE APPS SCRIPT BACKEND URL
+    // ==========================================
 
-    const randomQuote =
-        quotes[Math.floor(Math.random() * quotes.length)];
+    const BACKEND_URL =
+      "https://script.google.com/macros/s/AKfycbyUIJZTztzSYD7-DXWmRvlpBlcps2XM3U5ALdlzF5xS9G51Ssisu1WbiXbODvZLbzgl/exec";
 
-    document.getElementById("quote").textContent =
-        "“" + randomQuote + "”";
 
-    document.getElementById("registrationForm").style.display = "none";
+    // ==========================================
+    // FORM SUBMISSION
+    // ==========================================
 
-    document.getElementById("successMessage").style.display = "block";
+    document
+      .getElementById("registrationForm")
+      .addEventListener("submit", async function(event) {
 
-});
+        event.preventDefault();
 
+        const name =
+          document.getElementById("name").value.trim();
+
+        const college =
+          document.getElementById("college").value.trim();
+
+        const email =
+          document.getElementById("email").value.trim();
+
+        const contact =
+          document.getElementById("contact").value.trim();
+
+        const button =
+          document.getElementById("submitButton");
+
+
+        // Disable button while submitting
+        button.disabled = true;
+        button.textContent = "Submitting...";
+
+
+        try {
+
+          const response = await fetch(
+            BACKEND_URL,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "text/plain;charset=utf-8"
+              },
+
+              body: JSON.stringify({
+                name: name,
+                college: college,
+                email: email,
+                contact: contact
+              })
+            }
+          );
+
+
+          const result =
+            await response.json();
+
+
+          // ==========================================
+          // SUCCESS
+          // ==========================================
+
+          if (result.success) {
+
+            document
+              .getElementById("quote")
+              .textContent =
+              "“" + result.message + "”";
+
+            document
+              .getElementById("registrationForm")
+              .style.display = "none";
+
+            document
+              .getElementById("successMessage")
+              .style.display = "block";
+
+          }
+
+
+          // ==========================================
+          // SERVER ERROR
+          // ==========================================
+
+          else {
+
+            alert(result.message);
+
+            button.disabled = false;
+            button.textContent =
+              "Register for Social Work";
+          }
+
+        }
+
+
+        // ==========================================
+        // CONNECTION ERROR
+        // ==========================================
+
+        catch (error) {
+
+          console.error(error);
+
+          alert(
+            "Unable to submit the registration. " +
+            "Please check your internet connection and try again."
+          );
+
+          button.disabled = false;
+
+          button.textContent =
+            "Register for Social Work";
+        }
+
+      });
+
+  </script>
+
+</body>
+</html>
 </script>
 
 </body>
