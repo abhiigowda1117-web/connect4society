@@ -1,325 +1,342 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Connect4Society | Social Work Registration</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa, #e8f5e9);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      padding: 30px;
-      border-radius: 18px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    }
-
-    .logo {
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      color: #16803c;
-      margin-bottom: 8px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #555;
-      margin-bottom: 25px;
-      font-size: 15px;
-    }
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 7px;
-      color: #333;
-    }
-
-    input {
-      width: 100%;
-      padding: 13px;
-      margin-bottom: 18px;
-      border: 1px solid #ccc;
-      border-radius: 9px;
-      font-size: 15px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: #16803c;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 9px;
-      background: #16803c;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #126b32;
-    }
-
-    button:disabled {
-      background: #999;
-      cursor: not-allowed;
-    }
-
-    .success {
-      display: none;
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    .success h2 {
-      color: #16803c;
-      margin-bottom: 15px;
-    }
-
-    .quote {
-      font-size: 18px;
-      line-height: 1.5;
-      color: #444;
-      font-style: italic;
-      margin-top: 10px;
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 25px;
-      color: #777;
-      font-size: 13px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect4Society | Student Registration</title>
+<style>
+:root{--blue:#1749a5;--green:#13865c;--ink:#172033;--muted:#657187;--line:#dce3ed}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f3f6fb;color:var(--ink)}
+header{background:#fff;border-bottom:1px solid var(--line);padding:18px 20px}
+.nav{max-width:850px;margin:auto;display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:12px;background:var(--blue);color:white;display:grid;place-items:center;font-weight:bold}
+.brand{font-weight:800;font-size:19px}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:4px}
+main{max-width:760px;margin:35px auto;padding:0 16px 40px}
+.intro{text-align:center;margin-bottom:24px}
+.intro h1{font-size:29px;margin:0 0 10px}
+.intro p{color:var(--muted);line-height:1.6;margin:0}
+.card{background:white;border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 8px 30px #1720330a}
+.progress{display:flex;gap:8px;margin-bottom:26px}
+.progress span{height:5px;flex:1;background:#e4e9f1;border-radius:8px}
+.progress span.active{background:var(--blue)}
+.step-label{color:var(--blue);font-weight:bold;font-size:13px;text-transform:uppercase;letter-spacing:.6px}
+h2{font-size:22px;margin:9px 0 7px}
+.hint{font-size:14px;color:var(--muted);line-height:1.5;margin:0 0 22px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+label{font-size:14px;font-weight:700}
+input,select{width:100%;padding:13px 12px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:white;color:var(--ink)}
+input:focus,select:focus{outline:2px solid #b6ccff;border-color:var(--blue)}
+.activity-list{display:grid;gap:12px}
+.activity{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--line);padding:15px;border-radius:11px;cursor:pointer;line-height:1.45}
+.activity:has(input:checked){border-color:var(--blue);background:#f2f6ff}
+.activity input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--blue);flex-shrink:0}
+.activity strong{display:block;font-size:14px}
+.activity small{display:block;color:var(--muted);margin-top:4px}
+.counter{font-size:14px;margin:16px 0;color:var(--muted)}
+.counter strong{color:var(--blue)}
+.actions{display:flex;gap:10px;margin-top:25px}
+button{border:0;border-radius:9px;padding:13px 18px;font-size:15px;font-weight:700;cursor:pointer}
+.primary{background:var(--blue);color:white;flex:1}
+.secondary{background:#edf1f7;color:var(--ink)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.error{color:#b42318;background:#fff0ee;border:1px solid #ffd0ca;padding:12px;border-radius:9px;font-size:14px;margin-top:15px;line-height:1.5}
+.success{color:#087443;background:#eaf8f0;border:1px solid #b7e8cb;padding:18px;border-radius:10px;line-height:1.6}
+.review{display:grid;gap:0}
+.review-row{display:grid;grid-template-columns:170px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.review-row:last-child{border-bottom:0}
+.review-key{font-size:14px;color:var(--muted)}
+.review-value{font-size:14px;font-weight:600;white-space:pre-line}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:0 15px 25px}
+.hidden{display:none!important}
+@media(max-width:560px){main{margin:23px auto}.card{padding:19px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.intro h1{font-size:25px}.review-row{grid-template-columns:115px 1fr}.actions button{padding:12px 14px}}
+</style>
 </head>
-
 <body>
+<header>
+  <div class="nav">
+    <div class="logo">C4S</div>
+    <div class="brand">Connect4Society<small>Student Activity Registration</small></div>
+  </div>
+</header>
 
-  <div class="container">
+<main>
+  <div class="intro">
+    <h1>Make an impact. Earn activity points.</h1>
+    <p>Register for social-impact activities and review your details before submitting.</p>
+  </div>
 
-    <div class="logo">
-      Connect4Society
-    </div>
-
-    <div class="subtitle">
-      Register for Social Work & Community Activities
+  <div class="card">
+    <div class="progress" aria-label="Registration progress">
+      <span class="active" id="bar1"></span>
+      <span id="bar2"></span>
+      <span id="bar3"></span>
     </div>
 
     <form id="registrationForm">
+      <section id="page1">
+        <div class="step-label">Step 1 of 3</div>
+        <h2>Student details</h2>
+        <p class="hint">Enter your details carefully, as your USN and email can only be registered once.</p>
+        <div class="grid">
+          <div class="field full">
+            <label for="name">Student name (as per college ID) *</label>
+            <input id="name" name="name" autocomplete="name" maxlength="100" required>
+          </div>
+          <div class="field">
+            <label for="usn">USN *</label>
+            <input id="usn" name="usn" maxlength="30" required>
+          </div>
+          <div class="field">
+            <label for="college">Institution name *</label>
+            <input id="college" name="college" maxlength="150" required>
+          </div>
+          <div class="field">
+            <label for="email">Active email address *</label>
+            <input id="email" name="email" type="email" autocomplete="email" maxlength="150" required>
+          </div>
+          <div class="field">
+            <label for="contact">Phone number *</label>
+            <input id="contact" name="contact" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="10-digit number" required>
+          </div>
+          <div class="field full">
+            <label for="points">Points required *</label>
+            <select id="points" name="points" required>
+              <option value="">Select points</option>
+              <option value="20">20 points — 1 activity</option>
+              <option value="40">40 points — 2 activities</option>
+              <option value="60">60 points — 3 activities</option>
+              <option value="80">80 points — 4 activities</option>
+              <option value="100">100 points — 5 activities</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="button" id="toActivities">Next: Choose activities →</button>
+        </div>
+      </section>
 
-      <label for="name">Name [USN]</label>
-      <input
-        type="text"
-        id="name"
-        placeholder="Enter your NAME and USN(without spelling error)"
-        required
-      >
+      <section id="page2" class="hidden">
+        <div class="step-label">Step 2 of 3</div>
+        <h2>Choose your activities</h2>
+        <p class="hint">Each activity is worth 20 points. Select exactly the number required for your chosen points.</p>
+        <div class="activity-list" id="activityList"></div>
+        <div class="counter" id="counter" aria-live="polite"></div>
+        <div class="actions">
+          <button class="secondary" type="button" id="back1">← Back</button>
+          <button class="primary" type="button" id="toReview">Review registration →</button>
+        </div>
+      </section>
 
-    
-       <label for="college">College Name</label>
-      <input
-        type="text"
-        id="college"
-        placeholder="Enter your college name"
-        required
-      >
-
-      <label for="email">E-mail ID</label>
-      <input
-        type="email"
-        id="email"
-        placeholder="Enter your email"
-        required
-      >
-
-      <label for="contact">Contact Number</label>
-      <input
-        type="tel"
-        id="contact"
-        placeholder="Enter your contact number"
-        required
-      >
-
-      <button type="submit" id="submitButton">
-        Register for Social Work
-      </button>
-
+      <section id="page3" class="hidden">
+        <div class="step-label">Step 3 of 3</div>
+        <h2>Review your registration</h2>
+        <p class="hint">Check everything before submitting. Use Edit if you need to make changes.</p>
+        <div class="review" id="review"></div>
+        <div id="message" role="status" aria-live="polite"></div>
+        <div class="actions" id="reviewActions">
+          <button class="secondary" type="button" id="edit">← Edit</button>
+          <button class="primary" type="submit" id="submit">Submit registration</button>
+        </div>
+      </section>
     </form>
-
-    <div class="success" id="successMessage">
-
-      <h2>Registration Successful! 🎉</h2>
-
-      <p>
-        Thank you for registering for social work.
-      </p>
-
-      <p class="quote" id="quote"></p>
-
-    </div>
-
-    <div class="footer">
-      Connect4Society • Making a difference together
-    </div>
-
   </div>
+</main>
+<footer>Connect4Society · Please verify your details before submitting.</footer>
 
+<script>
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx9I2tWKpLoPzG6Uy_LdMMksIVljdXvPtKxFyfzvHltvwB8XMiGrwAdZl55oJZHnYl_/exec";
 
-  <script>
+const activities = [
+  "Swachh Bharat (National Initiative)",
+  "Garbage Cleaning",
+  "Sustainable Water Management",
+  "Public Health Awareness",
+  "UPI Fraud Awareness",
+  "Afforestation (National Initiative)"
+];
 
-    // ==========================================
-    // GOOGLE APPS SCRIPT BACKEND URL
-    // ==========================================
+const form = document.getElementById("registrationForm");
+const page1 = document.getElementById("page1");
+const page2 = document.getElementById("page2");
+const page3 = document.getElementById("page3");
+const pointsInput = document.getElementById("points");
+const activityList = document.getElementById("activityList");
+const counter = document.getElementById("counter");
+const message = document.getElementById("message");
+const submitButton = document.getElementById("submit");
 
-    const BACKEND_URL =
-      "https://script.google.com/macros/s/AKfycbyUIJZTztzSYD7-DXWmRvlpBlcps2XM3U5ALdlzF5xS9G51Ssisu1WbiXbODvZLbzgl/exec";
+function showPage(number) {
+  page1.classList.toggle("hidden", number !== 1);
+  page2.classList.toggle("hidden", number !== 2);
+  page3.classList.toggle("hidden", number !== 3);
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById("bar" + i).classList.toggle("active", i <= number);
+  }
+  message.textContent = "";
+  window.scrollTo({top: 0, behavior: "smooth"});
+}
 
+function requiredCount() {
+  return Number(pointsInput.value) / 20;
+}
 
-    // ==========================================
-    // FORM SUBMISSION
-    // ==========================================
+function selectedActivities() {
+  return [...activityList.querySelectorAll('input:checked')].map(input => input.value);
+}
 
-    document
-      .getElementById("registrationForm")
-      .addEventListener("submit", async function(event) {
+function renderActivities() {
+  const previouslySelected = selectedActivities();
+  activityList.innerHTML = "";
 
-        event.preventDefault();
+  activities.forEach((activity, index) => {
+    const label = document.createElement("label");
+    label.className = "activity";
 
-        const name =
-          document.getElementById("name").value.trim();
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = activity;
+    checkbox.name = "activities";
+    checkbox.checked = previouslySelected.includes(activity);
+    checkbox.addEventListener("change", updateCounter);
 
-        const college =
-          document.getElementById("college").value.trim();
+    const content = document.createElement("span");
+    const title = document.createElement("strong");
+    title.textContent = activity;
+    const detail = document.createElement("small");
+    detail.textContent = "20 activity points";
+    content.append(title, detail);
+    label.append(checkbox, content);
+    activityList.append(label);
+  });
+  updateCounter();
+}
 
-        const email =
-          document.getElementById("email").value.trim();
+function updateCounter() {
+  const chosen = selectedActivities().length;
+  const required = requiredCount();
+  counter.innerHTML = "Selected: <strong>" + chosen + " / " +
+    (required || 0) + "</strong> activities";
+  activityList.querySelectorAll('input').forEach(input => {
+    input.disabled = input.checked ? false : chosen >= required;
+  });
+}
 
-        const contact =
-          document.getElementById("contact").value.trim();
+function details() {
+  return {
+    name: document.getElementById("name").value.trim(),
+    usn: document.getElementById("usn").value.trim().toUpperCase(),
+    college: document.getElementById("college").value.trim(),
+    email: document.getElementById("email").value.trim().toLowerCase(),
+    contact: document.getElementById("contact").value.trim(),
+    points: Number(pointsInput.value),
+    activities: selectedActivities()
+  };
+}
 
-        const button =
-          document.getElementById("submitButton");
+document.getElementById("toActivities").addEventListener("click", () => {
+  if (!page1.querySelectorAll("input:invalid").length &&
+      !pointsInput.validity.valid) {
+    pointsInput.reportValidity();
+    return;
+  }
+  if (!page1.querySelector("input:invalid") && pointsInput.validity.valid) {
+    renderActivities();
+    showPage(2);
+  } else {
+    const invalid = page1.querySelector("input:invalid");
+    if (invalid) invalid.reportValidity();
+    else pointsInput.reportValidity();
+  }
+});
 
+pointsInput.addEventListener("change", renderActivities);
+document.getElementById("back1").addEventListener("click", () => showPage(1));
 
-        // Disable button while submitting
-        button.disabled = true;
-        button.textContent = "Submitting...";
+document.getElementById("toReview").addEventListener("click", () => {
+  const data = details();
+  if (!data.points || data.activities.length !== requiredCount()) {
+    alert("Please select exactly " + requiredCount() + " activities.");
+    return;
+  }
 
+  const entries = [
+    ["Student name", data.name],
+    ["USN", data.usn],
+    ["Institution", data.college],
+    ["Email", data.email],
+    ["Phone number", data.contact],
+    ["Points required", String(data.points)],
+    ["Selected activities", data.activities.map((a, i) => (i + 1) + ". " + a).join("\n")]
+  ];
 
-        try {
+  const review = document.getElementById("review");
+  review.replaceChildren();
+  entries.forEach(([key, value]) => {
+    const row = document.createElement("div");
+    row.className = "review-row";
+    const k = document.createElement("div");
+    k.className = "review-key";
+    k.textContent = key;
+    const v = document.createElement("div");
+    v.className = "review-value";
+    v.textContent = value;
+    row.append(k, v);
+    review.append(row);
+  });
+  showPage(3);
+});
 
-          const response = await fetch(
-            BACKEND_URL,
-            {
-              method: "POST",
+document.getElementById("edit").addEventListener("click", () => showPage(1));
 
-              headers: {
-                "Content-Type":
-                  "text/plain;charset=utf-8"
-              },
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+  const data = details();
 
-              body: JSON.stringify({
-                name: name,
-                college: college,
-                email: email,
-                contact: contact
-              })
-            }
-          );
+  if (data.activities.length !== requiredCount()) {
+    showPage(2);
+    alert("Please choose exactly " + requiredCount() + " activities.");
+    return;
+  }
 
+  submitButton.disabled = true;
+  submitButton.textContent = "Submitting…";
+  message.className = "";
+  message.textContent = "Submitting your registration. Please wait.";
 
-          const result =
-            await response.json();
+  try {
+    const response = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: {"Content-Type": "text/plain;charset=utf-8"},
+      body: JSON.stringify(data),
+      redirect: "follow"
+    });
 
+    const result = await response.json();
 
-          // ==========================================
-          // SUCCESS
-          // ==========================================
+    if (!result.success) {
+      message.className = "error";
+      message.textContent = result.message || "Registration could not be completed.";
+      return;
+    }
 
-          if (result.success) {
-
-            document
-              .getElementById("quote")
-              .textContent =
-              "“" + result.message + "”";
-
-            document
-              .getElementById("registrationForm")
-              .style.display = "none";
-
-            document
-              .getElementById("successMessage")
-              .style.display = "block";
-
-          }
-
-
-          // ==========================================
-          // SERVER ERROR
-          // ==========================================
-
-          else {
-
-            alert(result.message);
-
-            button.disabled = false;
-            button.textContent =
-              "Register for Social Work";
-          }
-
-        }
-
-
-        // ==========================================
-        // CONNECTION ERROR
-        // ==========================================
-
-        catch (error) {
-
-          console.error(error);
-
-          alert(
-            "Unable to submit the registration. " +
-            "Please check your internet connection and try again."
-          );
-
-          button.disabled = false;
-
-          button.textContent =
-            "Register for Social Work";
-        }
-
-      });
-
-  </script>
-
-</body>
-</html>
+    form.innerHTML = "";
+    const success = document.createElement("div");
+    success.className = "success";
+    success.innerHTML = "<strong>Registration submitted successfully!</strong><br><br>Your registration has been received. Please keep your USN and email for reference.";
+    form.append(success);
+  } catch (error) {
+    message.className = "error";
+    message.textContent = "We could not confirm the submission from this browser. Your registration may not have been saved. Please do not submit repeatedly; contact the organizer to verify before trying again.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Submit registration";
+  }
+});
 </script>
-
 </body>
 </html>
