@@ -22,7 +22,17 @@ const SPREADSHEET_ID = "";
 // "Connect4Society Activity Uploads" in My Drive on first use.
 const UPLOAD_FOLDER_ID = "";
 
-const REG_SHEET = "Registrations";             // on-spot registrations
+// On-spot registrations live in the "connnect4society onspot data" sheet (owned by
+// connect4society.info@gmail.com and shared with this account as Editor).
+// The tabs have no heading row; these are the column positions (A = 0).
+// New registrations are added to the first tab listed.
+const REG_BOOK_ID = "1UwlLcSr1LrQpe-5IHyHtmFVnTZX70jUU_CKSj-2iu6E";
+const REG_TABS = [
+  {tab: "Sheet1", time: 0, name: 1, usn: 2, college: 3, email: 4, phone: 5, points: 6, acts: 7},
+  {tab: "Sheet2", time: -1, name: 0, usn: 1, college: 2, email: 3, phone: 4, points: 5, acts: 6},
+  {tab: "Sheet3", time: -1, name: 0, usn: 1, college: 2, email: 3, phone: 4, points: 5, acts: 6},
+  {tab: "Sheet4", time: -1, name: 0, usn: 1, college: 2, email: 3, phone: 4, points: 5, acts: 6}
+];
 const SUB_SHEET = "Submissions";               // one row per student
 const ACT_SHEET = "Submission Activities";     // one row per student per activity
 
@@ -34,7 +44,6 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "i
                        "application/msword",
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
 
-const REG_HEADERS = ["Timestamp", "Name", "USN", "College", "Email", "Phone", "Points", "Activities"];
 const SUB_HEADERS = ["Timestamp", "USN", "Name", "College", "Department", "Batch",
                      "AICTE coordinator", "Coordinator designation", "HOD",
                      "Report format", "College template", "Format notes",
@@ -87,11 +96,13 @@ function register_(d) {
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    const sh = sheet_(REG_SHEET, REG_HEADERS);
-    const regs = readRegistrations_(sh);
+    const regs = readRegistrations_();
     if (regs.some(r => r.usn === usn)) return fail_("This USN is already registered. Contact the organiser if your details need to change.");
     if (regs.some(r => r.email && r.email === email)) return fail_("This email is already registered with another USN.");
-    sh.appendRow([new Date(), name, usn, college, email, "'" + phone, points, acts.join(" | ")]);
+    const first = REG_TABS[0];
+    const sh = SpreadsheetApp.openById(REG_BOOK_ID).getSheetByName(first.tab);
+    const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+    sh.appendRow([stamp, name, usn, college, email, "'" + phone, points].concat(acts));
   } finally {
     lock.releaseLock();
   }
@@ -240,32 +251,37 @@ function sheet_(name, headers) {
   return sh;
 }
 
-/** Reads registrations, finding columns by header so an existing sheet also works. */
-function readRegistrations_(sh) {
-  const values = sh.getDataRange().getDisplayValues();
-  if (values.length < 2) return [];
-  const h = values[0].map(x => x.toLowerCase());
-  const col = re => h.findIndex(x => re.test(x));
-  const cUsn = col(/usn/), cName = col(/name/), cCollege = col(/college|institution/),
-        cEmail = col(/mail/), cActs = col(/activit/), cPhone = col(/phone|contact|mobile/),
-        cPoints = col(/point/), cTime = col(/time|date/);
-  if (cUsn < 0 || cActs < 0) throw new Error("The " + REG_SHEET + " sheet needs a USN column and an Activities column.");
-  return values.slice(1).map(r => ({
-    usn: normUsn_(r[cUsn]),
-    name: cName >= 0 ? r[cName].trim() : "",
-    college: cCollege >= 0 ? r[cCollege].trim() : "",
-    email: cEmail >= 0 ? r[cEmail].trim().toLowerCase() : "",
-    phone: cPhone >= 0 ? r[cPhone].replace(/\D/g, "") : "",
-    points: cPoints >= 0 ? r[cPoints].trim() : "",
-    registered: cTime >= 0 ? r[cTime].trim() : "",
-    activities: String(r[cActs]).split(/\s*(?:\||\n|;)\s*/).map(s => s.trim()).filter(Boolean)
-  })).filter(r => r.usn);
+/** Reads every registration from all tabs in REG_TABS. */
+function readRegistrations_() {
+  const book = SpreadsheetApp.openById(REG_BOOK_ID);
+  const out = [];
+  REG_TABS.forEach(t => {
+    const sh = book.getSheetByName(t.tab);
+    if (!sh || sh.getLastRow() < 1) return;
+    sh.getDataRange().getDisplayValues().forEach(r => {
+      const usn = normUsn_(r[t.usn]);
+      if (!usn || usn === "USN") return;
+      const acts = r.slice(t.acts).map(x => String(x).trim()).filter(Boolean);
+      out.push({
+        usn: usn,
+        name: String(r[t.name] || "").trim(),
+        college: String(r[t.college] || "").trim(),
+        email: String(r[t.email] || "").trim().toLowerCase(),
+        phone: String(r[t.phone] || "").replace(/\D/g, ""),
+        points: String(r[t.points] || "").trim(),
+        registered: t.time >= 0 ? String(r[t.time] || "").trim() : "",
+        activities: acts.filter((x, i) => acts.indexOf(x) === i)
+      });
+    });
+  });
+  return out;
 }
+/** Returns this USN's registration, preferring the newest row in the first tab. */
 function findRegistration_(usn) {
-  const sh = book_().getSheetByName(REG_SHEET);
-  if (!sh) return null;
-  const matches = readRegistrations_(sh).filter(r => r.usn === usn);
-  return matches.length ? matches[matches.length - 1] : null;
+  const matches = readRegistrations_().filter(r => r.usn === usn);
+  if (!matches.length) return null;
+  const main = matches.filter(r => r.registered);
+  return main.length ? main[main.length - 1] : matches[0];
 }
 /** Returns the submission date for this USN, or null. */
 function findSubmission_(usn) {

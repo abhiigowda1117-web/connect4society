@@ -4,14 +4,19 @@
 
 | Page | What it does | Where it saves |
 |---|---|---|
-| `index.html` | On-spot registration at the NGO | **Registrations** sheet |
+| `index.html` | On-spot registration at the NGO | Sheet1 of "connnect4society onspot data" |
 | `upload.html` | Student enters USN, sees only their registered activities, uploads at least 3 photos and the certificate for each | Photos in Drive, one row per student in **Submissions**, one row per activity in **Submission Activities** |
 
 ## How it is set up
 
 - The script lives in the Google Sheet **Connect4Society Registrations** (connect4society@gmail.com),
-  under **Extensions → Apps Script**. Registrations, Submissions and Submission Activities are tabs
-  in that sheet; they are created automatically the first time they are needed.
+  under **Extensions → Apps Script**. Submissions and Submission Activities are tabs in that sheet,
+  created automatically the first time a student uploads.
+- On-spot registrations are read from **"connnect4society onspot data"** (owned by
+  connect4society.info@gmail.com, shared with connect4society@gmail.com as Editor), tabs Sheet1–Sheet4.
+  New registrations are added to Sheet1 in the same column layout. The tab list and column positions
+  are `REG_BOOK_ID` and `REG_TABS` at the top of `Code.gs`. If that sheet is ever unshared from
+  connect4society@gmail.com, the upload page stops finding students.
 - Photos go to the Drive folder **Connect4Society Activity Uploads**, one subfolder per student
   and one per activity. It is created on the first upload.
 - Both pages call the web app URL set as `BACKEND_URL` near the bottom of `index.html` and `upload.html`.
