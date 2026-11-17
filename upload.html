@@ -206,7 +206,23 @@ footer a{color:var(--blue)}
 <script>
 // Same Apps Script web app as index.html (apps-script/Code.gs).
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzZIXXCIlhHOiB3TDxS0fMtGlYXt-R7vvC3O2WHsi9KKMJondPqFuLZuGcG22AIRydN/exec";
-const PARALLEL = 4;          // files uploaded at once
+const PARALLEL = 3;          // files uploaded at once per phone (Google allows ~30 at once in total)
+const RETRIES = 6;           // a busy server is retried with growing pauses (1s, 2s, 4s … up to 15s)
+// Errors that will not go away by trying again.
+const FINAL = /not accepted|larger than|was empty|expired|Unknown activity|already submitted|No on-spot|missing|needs at least|Upload the certificate|template/i;
+
+/** Runs fn, retrying when the server is busy (e.g. many students submitting at once). */
+async function retry(fn) {
+  for (let attempt = 0; ; attempt++) {
+    try { return await fn(); }
+    catch (err) {
+      if (attempt >= RETRIES - 1 || FINAL.test(err.message)) throw err;
+      const wait = Math.min(1000 * 2 ** attempt, 15000) + Math.random() * 1000;
+      msg($("progressTxt"), "Server is busy, retrying in a moment…");
+      await new Promise(r => setTimeout(r, wait));
+    }
+  }
+}
 const MAX_SIDE = 1600;       // photos are resized so the longer side is at most this
 const JPEG_QUALITY = 0.82;
 const MAX_FILE = 10 * 1024 * 1024;
@@ -403,7 +419,7 @@ $("uploadForm").addEventListener("submit", async e => {
   try {
     msg($("progressTxt"), "Preparing photos…");
     await Promise.all(slots.flatMap(s => s.photos.map(p => p.ready)));
-    const {token} = await api("POST", {action: "start", usn: student.usn});
+    const {token} = await retry(() => api("POST", {action: "start", usn: student.usn}));
 
     // Build the upload queue.
     const jobs = [];
@@ -423,14 +439,8 @@ $("uploadForm").addEventListener("submit", async e => {
       while (next < jobs.length) {
         const job = jobs[next++];
         const data = await b64(job.blob);
-        let lastErr;
-        for (let attempt = 0; attempt < 3; attempt++) {
-          try {
-            const r = await api("POST", {action: "upload", token, slot: job.slot, name: job.name, type: mime(job.blob), data});
-            job.put(r.id); lastErr = null; break;
-          } catch (err) { lastErr = err; await new Promise(r => setTimeout(r, 800 * (attempt + 1))); }
-        }
-        if (lastErr) throw lastErr;
+        const r = await retry(() => api("POST", {action: "upload", token, slot: job.slot, name: job.name, type: mime(job.blob), data}));
+        job.put(r.id);
         done++; tick();
       }
     }
