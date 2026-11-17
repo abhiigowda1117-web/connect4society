@@ -234,7 +234,7 @@ $("findForm").addEventListener("submit", async e => {
   e.preventDefault();
   const usn = $("usn").value.trim().toUpperCase().replace(/\s+/g, "");
   if (!usn) { msg($("findMsg"), "Enter your USN.", "error"); return; }
-  $("findBtn").disabled = true; $("findBtn").textContent = "Finding…";
+  $("findBtn").disabled = true; $("findBtn").textContent = "Checking…";
   msg($("findMsg"), "");
   try {
     const r = await api("GET", null, {action: "lookup", usn});
@@ -251,7 +251,7 @@ $("findForm").addEventListener("submit", async e => {
   } catch (err) {
     msg($("findMsg"), err.message === "Failed to fetch" ? "Couldn't reach the server. Check your internet and try again." : err.message, "error");
   } finally {
-    $("findBtn").disabled = false; $("findBtn").textContent = "Find me";
+    $("findBtn").disabled = false; $("findBtn").textContent = "Next →";
   }
 });
 
