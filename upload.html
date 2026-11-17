@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect4Society | Upload Activity Photos</title>
+<style>
+:root{--blue:#1749a5;--green:#13865c;--ink:#172033;--muted:#657187;--line:#dce3ed;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f3f6fb;color:var(--ink)}
+header{background:#fff;border-bottom:1px solid var(--line);padding:18px 20px}
+.nav{max-width:850px;margin:auto;display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:12px;background:var(--blue);color:white;display:grid;place-items:center;font-weight:bold}
+.brand{font-weight:800;font-size:19px}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:4px}
+main{max-width:760px;margin:35px auto;padding:0 16px 40px;display:grid;gap:18px}
+.intro{text-align:center}
+.intro h1{font-size:29px;margin:0 0 10px}
+.intro p{color:var(--muted);line-height:1.6;margin:0}
+.card{background:white;border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 8px 30px #1720330a}
+.step-label{color:var(--blue);font-weight:bold;font-size:13px;text-transform:uppercase;letter-spacing:.6px}
+h2{font-size:22px;margin:9px 0 7px}
+h3{font-size:17px;margin:0}
+.hint{font-size:14px;color:var(--muted);line-height:1.5;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+label,.label{font-size:14px;font-weight:700}
+input,select,textarea{width:100%;padding:13px 12px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:white;color:var(--ink)}
+textarea{min-height:80px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid #b6ccff;border-color:var(--blue)}
+.row{display:flex;gap:10px}
+.row input{flex:1;text-transform:uppercase}
+button{border:0;border-radius:9px;padding:13px 18px;font-size:15px;font-weight:700;cursor:pointer}
+button:focus-visible{outline:3px solid #b6ccff}
+.primary{background:var(--blue);color:white}
+.secondary{background:#edf1f7;color:var(--ink)}
+.wide{width:100%;margin-top:22px}
+button:disabled{opacity:.55;cursor:not-allowed}
+.error{color:var(--red);background:#fff0ee;border:1px solid #ffd0ca;padding:12px;border-radius:9px;font-size:14px;margin-top:15px;line-height:1.5}
+.success{color:#087443;background:#eaf8f0;border:1px solid #b7e8cb;padding:18px;border-radius:10px;line-height:1.6}
+.who{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;background:#f7f9fc;border:1px solid var(--line);border-radius:11px;padding:14px 16px}
+.who dt{color:var(--muted)} .who dd{margin:0;font-weight:700}
+.choice{display:flex;gap:10px;flex-wrap:wrap}
+.choice label{flex:1 1 220px;display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:11px;padding:13px;font-weight:400;cursor:pointer;line-height:1.4}
+.choice label:has(input:checked){border-color:var(--blue);background:#f2f6ff}
+.choice input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--blue);flex-shrink:0}
+.activity{border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:12px}
+.activity.ok{border-color:#9fd8b8}
+.act-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+.pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:#fff0ee;color:var(--red);white-space:nowrap}
+.activity.ok .pill{background:#eaf8f0;color:#087443}
+.pick{display:flex;gap:10px;flex-wrap:wrap}
+.pick label{display:inline-flex;align-items:center;gap:8px;padding:11px 15px;border-radius:9px;background:#edf1f7;font-size:14px;cursor:pointer}
+.pick label:focus-within{outline:3px solid #b6ccff}
+.pick input{position:absolute;width:1px;height:1px;opacity:0}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.thumb{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden;background:#e4e9f1;max-width:100%}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb button{position:absolute;top:4px;right:4px;width:26px;height:26px;padding:0;border-radius:50%;background:#172033cc;color:#fff;font-size:15px;line-height:26px}
+.thumb .busy{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.cert{font-size:13px;color:var(--muted)}
+.cert strong{color:var(--ink)}
+.progress{height:10px;background:#e4e9f1;border-radius:8px;overflow:hidden;margin:14px 0 8px}
+.progress i{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
+.status{font-size:14px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:0 15px 25px}
+footer a{color:var(--blue)}
+.hidden{display:none!important}
+@media(max-width:560px){main{margin:23px auto}.card{padding:19px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.intro h1{font-size:25px}.row{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.progress i{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="logo">C4S</div>
+    <div class="brand">Connect4Society<small>Activity Photo Upload</small></div>
+  </div>
+</header>
+<main>
+  <div class="intro">
+    <h1>Upload your activity photos</h1>
+    <p>Enter the USN you registered with on the spot. You'll see only the activities you chose, and need at least 3 photos for each.</p>
+  </div>
+
+  <!-- Step 1: find registration -->
+  <section class="card" id="stepFind">
+    <div class="step-label">Step 1 of 2</div>
+    <h2>Find your registration</h2>
+    <p class="hint">Use the same USN you gave at the on-spot registration desk.</p>
+    <form id="findForm" class="row" novalidate>
+      <input id="usn" name="usn" maxlength="30" placeholder="e.g. 1AH23CS037" autocomplete="off" autocapitalize="characters" aria-label="USN" required>
+      <button class="primary" type="submit" id="findBtn">Find me</button>
+    </form>
+    <div id="findMsg" role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- Step 2: details + photos -->
+  <form id="uploadForm" class="hidden" novalidate>
+    <section class="card">
+      <div class="step-label">Step 2 of 2</div>
+      <h2>Check your details</h2>
+      <dl class="who" id="who"></dl>
+      <p class="hint" style="margin:12px 0 0">Not you, or wrong activities? <button type="button" class="secondary" id="changeUsn" style="padding:6px 10px;font-size:13px">Use another USN</button></p>
+    </section>
+
+    <section class="card">
+      <h2>For your report</h2>
+      <p class="hint">These go on the front sheet of your AICTE report.</p>
+      <div class="grid">
+        <div class="field full">
+          <label for="dept">Department / Branch *</label>
+          <input id="dept" list="deptList" maxlength="120" required placeholder="e.g. Computer Science and Engineering">
+          <datalist id="deptList">
+            <option value="Computer Science and Engineering"><option value="Information Science and Engineering">
+            <option value="Electronics and Communication Engineering"><option value="Mechanical Engineering">
+            <option value="Civil Engineering"><option value="Artificial Intelligence and Machine Learning">
+            <option value="Computer Science and Engineering (Data Science)"><option value="Industrial Engineering and Management">
+            <option value="Aeronautical Engineering"><option value="Electrical and Electronics Engineering">
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="batch">Batch *</label>
+          <input id="batch" maxlength="9" required pattern="\d{4}-\d{4}" placeholder="2023-2027" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="hod">HOD's name *</label>
+          <input id="hod" maxlength="100" required>
+        </div>
+        <div class="field">
+          <label for="coord">Department AICTE coordinator *</label>
+          <input id="coord" maxlength="100" required>
+        </div>
+        <div class="field">
+          <label for="desig">Coordinator's designation *</label>
+          <input id="desig" list="desigList" maxlength="80" required placeholder="e.g. Assistant Professor">
+          <datalist id="desigList"><option value="Assistant Professor"><option value="Associate Professor"><option value="Professor"></datalist>
+        </div>
+        <div class="field full">
+          <span class="label" id="fmtLabel">Report format *</span>
+          <div class="choice" role="radiogroup" aria-labelledby="fmtLabel">
+            <label><input type="radio" name="format" value="standard" checked> <span>Standard Connect4Society format</span></label>
+            <label><input type="radio" name="format" value="college"> <span>My college needs its own format</span></label>
+          </div>
+        </div>
+        <div class="field full hidden" id="templateBox">
+          <span class="label">College report template * <span class="cert">(PDF or Word, up to 10 MB)</span></span>
+          <div class="pick"><label>Choose template file<input type="file" id="template" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label></div>
+          <div class="cert" id="templateName">No file chosen</div>
+          <label for="notes" style="margin-top:6px">Anything we should know about the format?</label>
+          <textarea id="notes" maxlength="1000"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Photos for each activity</h2>
+      <p class="hint">At least <strong id="minTxt">3</strong> photos per activity, up to <span id="maxTxt">10</span>. Photos are resized on your phone before upload, so it's quick even on mobile data. Certificate is optional.</p>
+      <div id="activities" style="display:grid;gap:14px"></div>
+      <div id="submitMsg" role="status" aria-live="polite"></div>
+      <div id="progressBox" class="hidden">
+        <div class="progress"><i id="bar"></i></div>
+        <div class="status" id="progressTxt"></div>
+      </div>
+      <button class="primary wide" type="submit" id="submitBtn">Submit photos</button>
+    </section>
+  </form>
+
+  <section class="card hidden" id="done">
+    <div class="success" id="doneMsg"></div>
+  </section>
+</main>
+<footer>Connect4Society · Not registered yet? <a href="index.html">On-spot registration</a></footer>
+
+<script>
+// Same Apps Script web app as index.html (apps-script/Code.gs).
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx9I2tWKpLoPzG6Uy_LdMMksIVljdXvPtKxFyfzvHltvwB8XMiGrwAdZl55oJZHnYl_/exec";
+const PARALLEL = 4;          // files uploaded at once
+const MAX_SIDE = 1600;       // photos are resized so the longer side is at most this
+const JPEG_QUALITY = 0.82;
+const MAX_FILE = 10 * 1024 * 1024;
+
+const $ = id => document.getElementById(id);
+let student = null, MIN = 3, MAX = 10;
+let slots = [];              // [{key, name, photos:[{file, blob, url}], cert:File|null, el}]
+
+function msg(el, text, kind) { el.className = kind || ""; el.textContent = text; }
+
+async function api(method, body, query) {
+  const url = BACKEND_URL + (query ? "?" + new URLSearchParams(query) : "");
+  const res = await fetch(url, method === "GET" ? {redirect: "follow"} : {
+    method: "POST", redirect: "follow",
+    headers: {"Content-Type": "text/plain;charset=utf-8"},  // avoids a CORS preflight
+    body: JSON.stringify(body)
+  });
+  const out = await res.json();
+  if (!out.success) throw new Error(out.message || "Something went wrong.");
+  return out;
+}
+
+// ---- Step 1: lookup ----
+$("findForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const usn = $("usn").value.trim().toUpperCase().replace(/\s+/g, "");
+  if (!usn) { msg($("findMsg"), "Enter your USN.", "error"); return; }
+  $("findBtn").disabled = true; $("findBtn").textContent = "Finding…";
+  msg($("findMsg"), "");
+  try {
+    const r = await api("GET", null, {action: "lookup", usn});
+    if (r.submitted) {
+      msg($("findMsg"), "Photos for " + usn + " were already submitted on " + r.submitted + ". Contact the organiser if something needs to change.", "error");
+      return;
+    }
+    if (!r.student.activities.length) {
+      msg($("findMsg"), "Your registration has no activities on it. Contact the organiser.", "error");
+      return;
+    }
+    student = r.student; MIN = r.minPhotos || 3; MAX = r.maxPhotos || 10;
+    showForm();
+  } catch (err) {
+    msg($("findMsg"), err.message === "Failed to fetch" ? "Couldn't reach the server. Check your internet and try again." : err.message, "error");
+  } finally {
+    $("findBtn").disabled = false; $("findBtn").textContent = "Find me";
+  }
+});
+
+function showForm() {
+  $("who").replaceChildren(...[["Name", student.name], ["USN", student.usn], ["College", student.college],
+    ["Activities", student.activities.length + " (" + student.activities.length * 20 + " points)"]]
+    .flatMap(([k, v]) => { const dt = document.createElement("dt"), dd = document.createElement("dd"); dt.textContent = k; dd.textContent = v || "—"; return [dt, dd]; }));
+  $("minTxt").textContent = MIN; $("maxTxt").textContent = MAX;
+  slots.forEach(s => s.photos.forEach(p => URL.revokeObjectURL(p.url)));
+  slots = student.activities.map((name, i) => ({key: "a" + i, name, photos: [], cert: null}));
+  $("activities").replaceChildren(...slots.map(buildSlot));
+  $("stepFind").classList.add("hidden");
+  $("uploadForm").classList.remove("hidden");
+  window.scrollTo({top: 0, behavior: "smooth"});
+}
+
+$("changeUsn").addEventListener("click", () => {
+  $("uploadForm").classList.add("hidden");
+  $("stepFind").classList.remove("hidden");
+  $("usn").focus();
+});
+
+document.querySelectorAll('input[name="format"]').forEach(r => r.addEventListener("change", () => {
+  $("templateBox").classList.toggle("hidden", !college());
+}));
+const college = () => document.querySelector('input[name="format"]:checked').value === "college";
+$("template").addEventListener("change", () => {
+  const f = $("template").files[0];
+  $("templateName").innerHTML = f ? "<strong></strong>" : "No file chosen";
+  if (f) $("templateName").firstChild.textContent = f.name + " (" + mb(f.size) + ")";
+});
+
+// ---- Activity photo slots ----
+function buildSlot(slot) {
+  const box = document.createElement("div");
+  box.className = "activity";
+  box.innerHTML = `
+    <div class="act-head"><h3></h3><span class="pill"></span></div>
+    <div class="pick">
+      <label>📷 Add photos<input type="file" accept="image/*" multiple></label>
+      <label>Certificate (optional)<input type="file" accept="image/*,.pdf,application/pdf"></label>
+    </div>
+    <div class="thumbs"></div>
+    <div class="cert"></div>`;
+  box.querySelector("h3").textContent = slot.name;
+  const [photoIn, certIn] = box.querySelectorAll("input");
+  photoIn.addEventListener("change", () => { addPhotos(slot, [...photoIn.files]); photoIn.value = ""; });
+  certIn.addEventListener("change", () => {
+    const f = certIn.files[0]; certIn.value = "";
+    if (f && f.size > MAX_FILE) { alertSlot(slot, "Certificate is over 10 MB."); return; }
+    slot.cert = f || null; render(slot);
+  });
+  slot.el = box;
+  render(slot);
+  return box;
+}
+
+function alertSlot(slot, text) { slot.el.querySelector(".cert").textContent = text; }
+
+function addPhotos(slot, files) {
+  const room = MAX - slot.photos.length;
+  const imgs = files.filter(f => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
+  imgs.slice(0, room).forEach(file => {
+    const p = {file, blob: null, url: URL.createObjectURL(file)};
+    p.ready = shrink(file).then(b => { p.blob = b; render(slot); });
+    slot.photos.push(p);
+  });
+  render(slot);
+  if (imgs.length > room) alertSlot(slot, "Only " + MAX + " photos per activity. Extra photos were skipped.");
+}
+
+function render(slot) {
+  const n = slot.photos.length, ok = n >= MIN;
+  slot.el.classList.toggle("ok", ok);
+  slot.el.querySelector(".pill").textContent = ok ? `✓ ${n} photos` : `${n} / ${MIN} photos`;
+  const thumbs = slot.el.querySelector(".thumbs");
+  thumbs.replaceChildren(...slot.photos.map((p, i) => {
+    const t = document.createElement("div"); t.className = "thumb";
+    const img = document.createElement("img"); img.src = p.url; img.alt = slot.name + " photo " + (i + 1);
+    img.onerror = () => { img.remove(); const s = document.createElement("span"); s.className = "busy"; s.textContent = p.file.name.slice(0, 14); t.prepend(s); };
+    const x = document.createElement("button"); x.type = "button"; x.textContent = "×"; x.setAttribute("aria-label", "Remove photo " + (i + 1));
+    x.onclick = () => { URL.revokeObjectURL(p.url); slot.photos.splice(i, 1); render(slot); };
+    t.append(img, x); return t;
+  }));
+  const c = slot.el.querySelector(".cert");
+  c.innerHTML = slot.cert ? "Certificate: <strong></strong>" : "";
+  if (slot.cert) c.querySelector("strong").textContent = slot.cert.name;
+  if (slots.every(s => s.photos.length >= MIN)) msg($("submitMsg"), "");
+}
+
+/** Resizes a photo to JPEG. Falls back to the original file if the browser can't decode it (e.g. HEIC). */
+async function shrink(file) {
+  try {
+    const bmp = await createImageBitmap(file, {imageOrientation: "from-image"});
+    const scale = Math.min(1, MAX_SIDE / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext("2d").drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close && bmp.close();
+    const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", JPEG_QUALITY));
+    if (blob && blob.size < file.size) return blob;
+  } catch (e) { /* use the original */ }
+  return file;
+}
+
+// ---- Submit ----
+$("uploadForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const box = $("submitMsg");
+  const bad = [...document.querySelectorAll("#uploadForm input[required]")].find(i => !i.checkValidity());
+  if (bad) { bad.reportValidity(); return; }
+  const short = slots.find(s => s.photos.length < MIN);
+  if (short) { msg(box, `"${short.name}" needs at least ${MIN} photos.`, "error"); short.el.scrollIntoView({behavior: "smooth", block: "center"}); return; }
+  const tpl = $("template").files[0];
+  if (college() && !tpl) { msg(box, "Choose your college's report template, or pick the standard format.", "error"); return; }
+  if (tpl && tpl.size > MAX_FILE) { msg(box, "Template file is over 10 MB.", "error"); return; }
+
+  lock(true);
+  msg(box, "");
+  try {
+    msg($("progressTxt"), "Preparing photos…");
+    await Promise.all(slots.flatMap(s => s.photos.map(p => p.ready)));
+    const {token} = await api("POST", {action: "start", usn: student.usn});
+
+    // Build the upload queue.
+    const jobs = [];
+    const files = {};
+    slots.forEach(s => {
+      files[s.key] = {photos: [], cert: ""};
+      s.photos.forEach((p, i) => jobs.push({slot: s.key, blob: p.blob, name: `${student.usn}_${s.key}_${i + 1}.jpg`.replace(/\.jpg$/, ext(p.blob)), put: id => files[s.key].photos[i] = id}));
+      if (s.cert) jobs.push({slot: s.key, blob: s.cert, name: "certificate_" + s.cert.name, put: id => files[s.key].cert = id});
+    });
+    if (college() && tpl) { files.template = []; jobs.push({slot: "template", blob: tpl, name: tpl.name, put: id => files.template.push(id)}); }
+
+    let done = 0;
+    const tick = () => { $("bar").style.width = (done / jobs.length * 100) + "%"; msg($("progressTxt"), `Uploaded ${done} of ${jobs.length} files`); };
+    tick();
+    let next = 0;
+    async function worker() {
+      while (next < jobs.length) {
+        const job = jobs[next++];
+        const data = await b64(job.blob);
+        let lastErr;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const r = await api("POST", {action: "upload", token, slot: job.slot, name: job.name, type: mime(job.blob), data});
+            job.put(r.id); lastErr = null; break;
+          } catch (err) { lastErr = err; await new Promise(r => setTimeout(r, 800 * (attempt + 1))); }
+        }
+        if (lastErr) throw lastErr;
+        done++; tick();
+      }
+    }
+    await Promise.all(Array.from({length: Math.min(PARALLEL, jobs.length)}, worker));
+
+    msg($("progressTxt"), "Saving your submission…");
+    const r = await api("POST", {action: "submit", token, files, details: {
+      dept: $("dept").value, batch: $("batch").value, hod: $("hod").value,
+      coord: $("coord").value, desig: $("desig").value,
+      format: college() ? "college" : "standard", notes: $("notes").value
+    }});
+    $("uploadForm").classList.add("hidden");
+    $("done").classList.remove("hidden");
+    $("doneMsg").innerHTML = "<strong>Submitted.</strong><br><br>";
+    $("doneMsg").append(`${r.photos} photos for ${slots.length} ${slots.length === 1 ? "activity" : "activities"} were received for ${student.usn}. Your report will be prepared from these. You can close this page.`);
+    window.scrollTo({top: 0, behavior: "smooth"});
+  } catch (err) {
+    msg(box, (err.message === "Failed to fetch" ? "The connection dropped." : err.message) + " Nothing was recorded yet, so you can press Submit again.", "error");
+  } finally {
+    lock(false);
+  }
+});
+
+function lock(on) {
+  $("submitBtn").disabled = on;
+  $("submitBtn").textContent = on ? "Uploading…" : "Submit photos";
+  $("progressBox").classList.toggle("hidden", !on);
+  document.querySelectorAll("#uploadForm input, #uploadForm button:not(#submitBtn), #uploadForm textarea").forEach(el => el.disabled = on);
+}
+function b64(blob) {
+  return new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = bad; r.readAsDataURL(blob); });
+}
+function mime(blob) {
+  if (blob.type) return blob.type;
+  const n = (blob.name || "").toLowerCase();
+  return n.endsWith(".heic") ? "image/heic" : n.endsWith(".heif") ? "image/heif" : n.endsWith(".pdf") ? "application/pdf" : "image/jpeg";
+}
+function ext(blob) {
+  return ({"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic", "image/heif": ".heif"})[mime(blob)] || ".jpg";
+}
+function mb(n) { return (n / 1048576).toFixed(1) + " MB"; }
+</script>
+</body>
+</html>
