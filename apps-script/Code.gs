@@ -100,7 +100,10 @@ function register_(d) {
 
 // ---- Photo upload (upload.html) -------------------------------------------
 
-/** Returns the student's name, college and registered activities. No email or phone. */
+/**
+ * Returns what the student filled in at on-spot registration, for the upload page to show
+ * read-only. Email and phone are partly hidden, because anyone who knows a USN can look it up.
+ */
 function lookup_(rawUsn) {
   const usn = normUsn_(rawUsn);
   if (!usn) return fail_("Enter your USN.");
@@ -109,7 +112,9 @@ function lookup_(rawUsn) {
   const done = findSubmission_(usn);
   return {
     success: true,
-    student: {usn: usn, name: reg.name, college: reg.college, activities: reg.activities},
+    student: {usn: usn, name: reg.name, college: reg.college, email: maskEmail_(reg.email),
+              phone: maskPhone_(reg.phone), points: reg.points || String(reg.activities.length * 20),
+              registered: reg.registered, activities: reg.activities},
     submitted: done ? Utilities.formatDate(done, Session.getScriptTimeZone(), "d MMM yyyy, h:mm a") : "",
     minPhotos: MIN_PHOTOS, maxPhotos: MAX_PHOTOS
   };
@@ -185,6 +190,7 @@ function submit_(d) {
     const photos = (got.photos || []).map(String).filter(Boolean);
     if (photos.length < MIN_PHOTOS) return fail_(reg.activities[i] + " needs at least " + MIN_PHOTOS + " photos.");
     if (photos.length > MAX_PHOTOS) return fail_(reg.activities[i] + " has more than " + MAX_PHOTOS + " photos.");
+    if (!got.cert) return fail_("Upload the certificate for " + reg.activities[i] + ".");
     total += photos.length;
     rows.push({activity: reg.activities[i], photos: photos.map(link),
                cert: got.cert ? link(String(got.cert)) : "", folder: link(state.folders["a" + i])});
@@ -241,13 +247,17 @@ function readRegistrations_(sh) {
   const h = values[0].map(x => x.toLowerCase());
   const col = re => h.findIndex(x => re.test(x));
   const cUsn = col(/usn/), cName = col(/name/), cCollege = col(/college|institution/),
-        cEmail = col(/mail/), cActs = col(/activit/);
+        cEmail = col(/mail/), cActs = col(/activit/), cPhone = col(/phone|contact|mobile/),
+        cPoints = col(/point/), cTime = col(/time|date/);
   if (cUsn < 0 || cActs < 0) throw new Error("The " + REG_SHEET + " sheet needs a USN column and an Activities column.");
   return values.slice(1).map(r => ({
     usn: normUsn_(r[cUsn]),
     name: cName >= 0 ? r[cName].trim() : "",
     college: cCollege >= 0 ? r[cCollege].trim() : "",
     email: cEmail >= 0 ? r[cEmail].trim().toLowerCase() : "",
+    phone: cPhone >= 0 ? r[cPhone].replace(/\D/g, "") : "",
+    points: cPoints >= 0 ? r[cPoints].trim() : "",
+    registered: cTime >= 0 ? r[cTime].trim() : "",
     activities: String(r[cActs]).split(/\s*(?:\||\n|;)\s*/).map(s => s.trim()).filter(Boolean)
   })).filter(r => r.usn);
 }
@@ -264,6 +274,14 @@ function findSubmission_(usn) {
   const rows = sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues();
   for (let i = rows.length - 1; i >= 0; i--) if (normUsn_(rows[i][1]) === usn) return rows[i][0];
   return null;
+}
+function maskEmail_(e) {
+  const m = String(e || "").match(/^(.{1,3})[^@]*(@.+)$/);
+  return m ? m[1] + "•••" + m[2] : "";
+}
+function maskPhone_(p) {
+  p = String(p || "");
+  return p.length >= 6 ? p.slice(0, 2) + "••••••" + p.slice(-2) : "";
 }
 function state_(token) {
   const raw = token && CacheService.getScriptCache().get("up_" + token);

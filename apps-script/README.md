@@ -5,7 +5,7 @@
 | Page | What it does | Where it saves |
 |---|---|---|
 | `index.html` | On-spot registration at the NGO | **Registrations** sheet |
-| `upload.html` | Student enters USN, sees only their registered activities, uploads at least 3 photos each | Photos in Drive, one row per student in **Submissions**, one row per activity in **Submission Activities** |
+| `upload.html` | Student enters USN, sees only their registered activities, uploads at least 3 photos and the certificate for each | Photos in Drive, one row per student in **Submissions**, one row per activity in **Submission Activities** |
 
 ## Set it up (about 5 minutes)
 
@@ -32,7 +32,7 @@
 
 1. Open `index.html` and register a test student with 2 activities.
 2. Open `upload.html`, enter that USN. Only those 2 activities should appear.
-3. Add 3 photos to each and submit. Check the new folder in Drive and the rows in
+3. Add 3 photos and a certificate to each and submit. Check the new folder in Drive and the rows in
    **Submissions** and **Submission Activities**.
 4. Delete the test rows and folder.
 
@@ -40,7 +40,7 @@
 
 - A USN must be registered before it can upload.
 - Only the activities from that student's registration are accepted.
-- 3 to 10 photos per activity; certificates are optional; the college template is required only
+- 3 to 10 photos and the certificate for every activity; the college template is required only
   when the student picks "my college's own format".
 - One submission per USN. To let a student redo it, delete their row in **Submissions**
   and their rows in **Submission Activities**.

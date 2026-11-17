@@ -39,6 +39,13 @@ button:focus-visible{outline:3px solid #b6ccff}
 button:disabled{opacity:.55;cursor:not-allowed}
 .error{color:var(--red);background:#fff0ee;border:1px solid #ffd0ca;padding:12px;border-radius:9px;font-size:14px;margin-top:15px;line-height:1.5}
 .success{color:#087443;background:#eaf8f0;border:1px solid #b7e8cb;padding:18px;border-radius:10px;line-height:1.6}
+.locked input,.locked textarea{background:#f3f6fb;color:var(--ink);border-style:dashed;cursor:default}
+.lock-note{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);background:#f7f9fc;border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:18px}
+.acts-list{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.acts-list li{border:1px dashed #cbd5e1;border-radius:9px;padding:11px 12px;background:#f3f6fb;font-size:14px;font-weight:700}
+.acts-list li small{display:block;font-weight:400;color:var(--muted);margin-top:3px}
+.actions{display:flex;gap:10px;margin-top:22px}
+.actions .primary{flex:1}
 .who{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;background:#f7f9fc;border:1px solid var(--line);border-radius:11px;padding:14px 16px}
 .who dt{color:var(--muted)} .who dd{margin:0;font-weight:700}
 .choice{display:flex;gap:10px;flex-wrap:wrap}
@@ -60,6 +67,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .thumb button{position:absolute;top:4px;right:4px;width:26px;height:26px;padding:0;border-radius:50%;background:#172033cc;color:#fff;font-size:15px;line-height:26px}
 .thumb .busy{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--muted)}
 .cert{font-size:13px;color:var(--muted)}
+.need{display:flex;gap:8px;flex-wrap:wrap}
 .cert strong{color:var(--ink)}
 .progress{height:10px;background:#e4e9f1;border-radius:8px;overflow:hidden;margin:14px 0 8px}
 .progress i{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
@@ -81,28 +89,38 @@ footer a{color:var(--blue)}
 <main>
   <div class="intro">
     <h1>Upload your activity photos</h1>
-    <p>Enter the USN you registered with on the spot. You'll see only the activities you chose, and need at least 3 photos for each.</p>
+    <p>Enter the USN you registered with on the spot. You'll see the activities you chose there, and upload 3 photos and the certificate for each.</p>
   </div>
 
   <!-- Step 1: find registration -->
   <section class="card" id="stepFind">
-    <div class="step-label">Step 1 of 2</div>
+    <div class="step-label">Step 1 of 3</div>
     <h2>Find your registration</h2>
     <p class="hint">Use the same USN you gave at the on-spot registration desk.</p>
     <form id="findForm" class="row" novalidate>
       <input id="usn" name="usn" maxlength="30" placeholder="e.g. 1AH23CS037" autocomplete="off" autocapitalize="characters" aria-label="USN" required>
-      <button class="primary" type="submit" id="findBtn">Find me</button>
+      <button class="primary" type="submit" id="findBtn">Next →</button>
     </form>
     <div id="findMsg" role="status" aria-live="polite"></div>
   </section>
 
   <!-- Step 2: details + photos -->
   <form id="uploadForm" class="hidden" novalidate>
+    <div id="page2" style="display:grid;gap:18px">
     <section class="card">
-      <div class="step-label">Step 2 of 2</div>
-      <h2>Check your details</h2>
-      <dl class="who" id="who"></dl>
-      <p class="hint" style="margin:12px 0 0">Not you, or wrong activities? <button type="button" class="secondary" id="changeUsn" style="padding:6px 10px;font-size:13px">Use another USN</button></p>
+      <div class="step-label">Step 2 of 3</div>
+      <h2>Your on-spot registration</h2>
+      <p class="hint">This is what you filled in at the registration desk. It can't be changed here. If anything is wrong, tell the organiser before you continue.</p>
+      <div class="lock-note">🔒 Locked: fetched from your on-spot registration</div>
+      <div class="grid locked">
+        <div class="field full"><label for="r_name">Student name</label><input id="r_name" readonly tabindex="-1"></div>
+        <div class="field"><label for="r_usn">USN</label><input id="r_usn" readonly tabindex="-1"></div>
+        <div class="field"><label for="r_college">Institution name</label><input id="r_college" readonly tabindex="-1"></div>
+        <div class="field"><label for="r_email">Email address</label><input id="r_email" readonly tabindex="-1"></div>
+        <div class="field"><label for="r_phone">Phone number</label><input id="r_phone" readonly tabindex="-1"></div>
+        <div class="field full"><label for="r_points">Points required</label><input id="r_points" readonly tabindex="-1"></div>
+        <div class="field full"><span class="label">Activities you selected</span><ul class="acts-list" id="r_acts"></ul></div>
+      </div>
     </section>
 
     <section class="card">
@@ -152,19 +170,31 @@ footer a{color:var(--blue)}
           <textarea id="notes" maxlength="1000"></textarea>
         </div>
       </div>
+      <div class="actions">
+        <button class="secondary" type="button" id="changeUsn">← Back</button>
+        <button class="primary" type="button" id="toPhotos">Next: Upload photos →</button>
+      </div>
     </section>
+    </div>
+
+    <div id="page3" class="hidden">
 
     <section class="card">
-      <h2>Photos for each activity</h2>
-      <p class="hint">At least <strong id="minTxt">3</strong> photos per activity, up to <span id="maxTxt">10</span>. Photos are resized on your phone before upload, so it's quick even on mobile data. Certificate is optional.</p>
+      <div class="step-label">Step 3 of 3</div>
+      <h2>Photos and certificates</h2>
+      <p class="hint">For each activity: at least <strong id="minTxt">3</strong> photos (up to <span id="maxTxt">10</span>) and the certificate you downloaded for it (image or PDF). Photos are resized on your phone before upload, so it's quick even on mobile data.</p>
       <div id="activities" style="display:grid;gap:14px"></div>
       <div id="submitMsg" role="status" aria-live="polite"></div>
       <div id="progressBox" class="hidden">
         <div class="progress"><i id="bar"></i></div>
         <div class="status" id="progressTxt"></div>
       </div>
-      <button class="primary wide" type="submit" id="submitBtn">Submit photos</button>
+      <div class="actions">
+        <button class="secondary" type="button" id="back2">← Back</button>
+        <button class="primary" type="submit" id="submitBtn">Submit</button>
+      </div>
     </section>
+    </div>
   </form>
 
   <section class="card hidden" id="done">
@@ -226,17 +256,39 @@ $("findForm").addEventListener("submit", async e => {
 });
 
 function showForm() {
-  $("who").replaceChildren(...[["Name", student.name], ["USN", student.usn], ["College", student.college],
-    ["Activities", student.activities.length + " (" + student.activities.length * 20 + " points)"]]
-    .flatMap(([k, v]) => { const dt = document.createElement("dt"), dd = document.createElement("dd"); dt.textContent = k; dd.textContent = v || "—"; return [dt, dd]; }));
+  $("r_name").value = student.name || "—";
+  $("r_usn").value = student.usn;
+  $("r_college").value = student.college || "—";
+  $("r_email").value = student.email || "—";
+  $("r_phone").value = student.phone || "—";
+  $("r_points").value = (student.points || student.activities.length * 20) + " points (" + student.activities.length + " " + (student.activities.length === 1 ? "activity" : "activities") + ")";
+  $("r_acts").replaceChildren(...student.activities.map((a, i) => {
+    const li = document.createElement("li"); li.textContent = (i + 1) + ". " + a;
+    const sm = document.createElement("small"); sm.textContent = "20 activity points"; li.append(sm); return li;
+  }));
   $("minTxt").textContent = MIN; $("maxTxt").textContent = MAX;
   slots.forEach(s => s.photos.forEach(p => URL.revokeObjectURL(p.url)));
   slots = student.activities.map((name, i) => ({key: "a" + i, name, photos: [], cert: null}));
   $("activities").replaceChildren(...slots.map(buildSlot));
   $("stepFind").classList.add("hidden");
   $("uploadForm").classList.remove("hidden");
+  page(2);
+}
+
+function page(n) {
+  $("page2").classList.toggle("hidden", n !== 2);
+  $("page3").classList.toggle("hidden", n !== 3);
   window.scrollTo({top: 0, behavior: "smooth"});
 }
+
+$("toPhotos").addEventListener("click", () => {
+  const bad = [...$("page2").querySelectorAll("input[required]")].find(i => !i.checkValidity());
+  if (bad) { bad.reportValidity(); return; }
+  const tpl = $("template").files[0];
+  if (college() && !tpl) { $("template").closest(".field").scrollIntoView({block: "center"}); $("templateName").textContent = "Choose your college's report template, or pick the standard format."; return; }
+  page(3);
+});
+$("back2").addEventListener("click", () => page(2));
 
 $("changeUsn").addEventListener("click", () => {
   $("uploadForm").classList.add("hidden");
@@ -259,10 +311,10 @@ function buildSlot(slot) {
   const box = document.createElement("div");
   box.className = "activity";
   box.innerHTML = `
-    <div class="act-head"><h3></h3><span class="pill"></span></div>
+    <div class="act-head"><h3></h3><span class="need"><span class="pill"></span><span class="pill cpill"></span></span></div>
     <div class="pick">
       <label>📷 Add photos<input type="file" accept="image/*" multiple></label>
-      <label>Certificate (optional)<input type="file" accept="image/*,.pdf,application/pdf"></label>
+      <label>📄 Add certificate<input type="file" accept="image/*,.pdf,application/pdf"></label>
     </div>
     <div class="thumbs"></div>
     <div class="cert"></div>`;
@@ -295,8 +347,12 @@ function addPhotos(slot, files) {
 
 function render(slot) {
   const n = slot.photos.length, ok = n >= MIN;
-  slot.el.classList.toggle("ok", ok);
-  slot.el.querySelector(".pill").textContent = ok ? `✓ ${n} photos` : `${n} / ${MIN} photos`;
+  slot.el.classList.toggle("ok", ok && !!slot.cert);
+  const [pp, cp] = slot.el.querySelectorAll(".pill");
+  pp.textContent = ok ? `✓ ${n} photos` : `${n} / ${MIN} photos`;
+  pp.style.cssText = ok ? "background:#eaf8f0;color:#087443" : "";
+  cp.textContent = slot.cert ? "✓ Certificate" : "Certificate needed";
+  cp.style.cssText = slot.cert ? "background:#eaf8f0;color:#087443" : "";
   const thumbs = slot.el.querySelector(".thumbs");
   thumbs.replaceChildren(...slot.photos.map((p, i) => {
     const t = document.createElement("div"); t.className = "thumb";
@@ -309,7 +365,7 @@ function render(slot) {
   const c = slot.el.querySelector(".cert");
   c.innerHTML = slot.cert ? "Certificate: <strong></strong>" : "";
   if (slot.cert) c.querySelector("strong").textContent = slot.cert.name;
-  if (slots.every(s => s.photos.length >= MIN)) msg($("submitMsg"), "");
+  if (slots.every(s => s.photos.length >= MIN && s.cert)) msg($("submitMsg"), "");
 }
 
 /** Resizes a photo to JPEG. Falls back to the original file if the browser can't decode it (e.g. HEIC). */
@@ -332,9 +388,12 @@ $("uploadForm").addEventListener("submit", async e => {
   e.preventDefault();
   const box = $("submitMsg");
   const bad = [...document.querySelectorAll("#uploadForm input[required]")].find(i => !i.checkValidity());
-  if (bad) { bad.reportValidity(); return; }
-  const short = slots.find(s => s.photos.length < MIN);
-  if (short) { msg(box, `"${short.name}" needs at least ${MIN} photos.`, "error"); short.el.scrollIntoView({behavior: "smooth", block: "center"}); return; }
+  if (bad) { page(2); bad.reportValidity(); return; }
+  const short = slots.find(s => s.photos.length < MIN || !s.cert);
+  if (short) {
+    msg(box, short.photos.length < MIN ? `"${short.name}" needs at least ${MIN} photos.` : `Add the certificate for "${short.name}".`, "error");
+    short.el.scrollIntoView({behavior: "smooth", block: "center"}); return;
+  }
   const tpl = $("template").files[0];
   if (college() && !tpl) { msg(box, "Choose your college's report template, or pick the standard format.", "error"); return; }
   if (tpl && tpl.size > MAX_FILE) { msg(box, "Template file is over 10 MB.", "error"); return; }
@@ -386,7 +445,7 @@ $("uploadForm").addEventListener("submit", async e => {
     $("uploadForm").classList.add("hidden");
     $("done").classList.remove("hidden");
     $("doneMsg").innerHTML = "<strong>Submitted.</strong><br><br>";
-    $("doneMsg").append(`${r.photos} photos for ${slots.length} ${slots.length === 1 ? "activity" : "activities"} were received for ${student.usn}. Your report will be prepared from these. You can close this page.`);
+    $("doneMsg").append(`${r.photos} photos and ${slots.length} ${slots.length === 1 ? "certificate" : "certificates"} for ${slots.length} ${slots.length === 1 ? "activity" : "activities"} were received for ${student.usn}. Your report will be prepared from these. You can close this page.`);
     window.scrollTo({top: 0, behavior: "smooth"});
   } catch (err) {
     msg(box, (err.message === "Failed to fetch" ? "The connection dropped." : err.message) + " Nothing was recorded yet, so you can press Submit again.", "error");
@@ -397,9 +456,9 @@ $("uploadForm").addEventListener("submit", async e => {
 
 function lock(on) {
   $("submitBtn").disabled = on;
-  $("submitBtn").textContent = on ? "Uploading…" : "Submit photos";
+  $("submitBtn").textContent = on ? "Uploading…" : "Submit";
   $("progressBox").classList.toggle("hidden", !on);
-  document.querySelectorAll("#uploadForm input, #uploadForm button:not(#submitBtn), #uploadForm textarea").forEach(el => el.disabled = on);
+  document.querySelectorAll("#uploadForm input:not([readonly]), #uploadForm button:not(#submitBtn), #uploadForm textarea").forEach(el => el.disabled = on);
 }
 function b64(blob) {
   return new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = bad; r.readAsDataURL(blob); });
