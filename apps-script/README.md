@@ -7,26 +7,21 @@
 | `index.html` | On-spot registration at the NGO | **Registrations** sheet |
 | `upload.html` | Student enters USN, sees only their registered activities, uploads at least 3 photos and the certificate for each | Photos in Drive, one row per student in **Submissions**, one row per activity in **Submission Activities** |
 
-## Set it up (about 5 minutes)
+## How it is set up
 
-1. Open the Apps Script project your registration page already uses (the one behind the
-   `script.google.com/macros/s/AKfycbx9I2…/exec` link in `index.html`).
-2. **Back up the old code first**: copy everything in `Code.gs` into a new file named `OldCode.gs.txt`
-   on your computer.
-3. Replace the contents of `Code.gs` with this repository's `apps-script/Code.gs`.
-4. At the top of the file, check the settings:
-   - `SPREADSHEET_ID`: leave `""` if the script was opened from the sheet (Extensions → Apps Script).
-     Otherwise paste the ID of the sheet that holds registrations.
-   - `REG_SHEET`: the tab name your registrations are stored in. If your existing tab has another
-     name (for example `Sheet1`), put that name here. The script finds the columns by their headings,
-     so it only needs a heading containing **USN** and one containing **Activities**.
-     Activities in one cell must be separated by `|`, `;` or new lines.
-   - `UPLOAD_FOLDER_ID`: the Drive folder for photos (the part after `/folders/` in the folder link).
-     Leave `""` and the script makes "Connect4Society Activity Uploads" in My Drive.
-5. **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.**
-   Editing the existing deployment keeps the same link, so both pages keep working without changes.
-   Use **Execute as: Me** and **Who has access: Anyone**.
-6. The first deploy asks for Drive and Sheets permission. Allow it.
+- The script lives in the Google Sheet **Connect4Society Registrations** (connect4society@gmail.com),
+  under **Extensions → Apps Script**. Registrations, Submissions and Submission Activities are tabs
+  in that sheet; they are created automatically the first time they are needed.
+- Photos go to the Drive folder **Connect4Society Activity Uploads**, one subfolder per student
+  and one per activity. It is created on the first upload.
+- Both pages call the web app URL set as `BACKEND_URL` near the bottom of `index.html` and `upload.html`.
+
+## Changing the code later
+
+1. Open the sheet → **Extensions → Apps Script**, paste the new `Code.gs`, press Ctrl+S.
+2. **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.**
+   Editing the existing deployment keeps the same URL, so the pages need no change.
+   (Deploy → *New deployment* would create a different URL, and both pages would then need updating.)
 
 ## Test it
 
