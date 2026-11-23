@@ -206,8 +206,9 @@ footer a{color:var(--blue)}
 <script>
 // Same Apps Script web app as index.html (apps-script/Code.gs).
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzZIXXCIlhHOiB3TDxS0fMtGlYXt-R7vvC3O2WHsi9KKMJondPqFuLZuGcG22AIRydN/exec";
-const PARALLEL = 3;          // files uploaded at once per phone (Google allows ~30 at once in total)
-const RETRIES = 6;           // a busy server is retried with growing pauses (1s, 2s, 4s … up to 15s)
+const PARALLEL = 2;          // files uploaded at once per phone; fewer is steadier on weak mobile data
+const RETRIES = 12;          // retried with growing pauses (1s, 2s, 4s … up to 20s): about 3 minutes in total
+const REQUEST_TIMEOUT = 90000; // a single request that hangs this long is abandoned and retried
 // Errors that will not go away by trying again.
 const FINAL = /not accepted|larger than|was empty|expired|Unknown activity|already submitted|No on-spot|missing|needs at least|Upload the certificate|template/i;
 
@@ -217,8 +218,13 @@ async function retry(fn) {
     try { return await fn(); }
     catch (err) {
       if (attempt >= RETRIES - 1 || FINAL.test(err.message)) throw err;
-      const wait = Math.min(1000 * 2 ** attempt, 15000) + Math.random() * 1000;
-      msg($("progressTxt"), "Server is busy, retrying in a moment…");
+      if (!navigator.onLine) {   // no internet: wait for it to come back instead of burning retries
+        msg($("progressTxt"), "No internet connection. Waiting for it to come back… keep this page open.");
+        await new Promise(r => { const t = setTimeout(r, 120000); window.addEventListener("online", () => { clearTimeout(t); r(); }, {once: true}); });
+        continue;
+      }
+      const wait = Math.min(1000 * 2 ** attempt, 20000) + Math.random() * 1000;
+      msg($("progressTxt"), "Slow connection or busy server. Retrying… please keep this page open.");
       await new Promise(r => setTimeout(r, wait));
     }
   }
@@ -235,12 +241,22 @@ function msg(el, text, kind) { el.className = kind || ""; el.textContent = text;
 
 async function api(method, body, query) {
   const url = BACKEND_URL + (query ? "?" + new URLSearchParams(query) : "");
-  const res = await fetch(url, method === "GET" ? {redirect: "follow"} : {
-    method: "POST", redirect: "follow",
-    headers: {"Content-Type": "text/plain;charset=utf-8"},  // avoids a CORS preflight
-    body: JSON.stringify(body)
-  });
-  const out = await res.json();
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), REQUEST_TIMEOUT);   // don't hang forever on a dead connection
+  let out;
+  try {
+    const res = await fetch(url, method === "GET" ? {redirect: "follow", signal: ctl.signal} : {
+      method: "POST", redirect: "follow", signal: ctl.signal,
+      headers: {"Content-Type": "text/plain;charset=utf-8"},  // avoids a CORS preflight
+      body: JSON.stringify(body)
+    });
+    try { out = await res.json(); }
+    catch (e) { throw new Error("The server was busy (HTTP " + res.status + ")"); }   // Google sends an HTML page when overloaded
+  } catch (e) {
+    throw new Error(e.name === "AbortError" ? "Failed to fetch" : e.message);
+  } finally {
+    clearTimeout(timer);
+  }
   if (!out.success) throw new Error(out.message || "Something went wrong.");
   return out;
 }
@@ -538,7 +554,12 @@ $("uploadForm").addEventListener("submit", async e => {
   }
 });
 
+// Ask before the student closes or leaves the page in the middle of an upload.
+let uploading = false;
+window.addEventListener("beforeunload", e => { if (uploading) { e.preventDefault(); e.returnValue = ""; } });
+
 function lock(on) {
+  uploading = on;
   $("submitBtn").disabled = on;
   $("submitBtn").textContent = on ? "Uploading…" : "Submit";
   $("progressBox").classList.toggle("hidden", !on);
