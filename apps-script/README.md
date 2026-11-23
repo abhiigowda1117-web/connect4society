@@ -21,6 +21,12 @@
   and one per activity. It is created on the first upload.
 - Both pages call the web app URL set as `BACKEND_URL` near the bottom of `index.html` and `upload.html`.
 
+
+**Deploying a change:** always use **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**
+on the existing deployment. *New deployment* creates a different link, and archiving the old one stops
+both pages working until `BACKEND_URL` in `index.html` and `upload.html` is updated.
+Current web app ID: `AKfycbzG_Y9LbIaShGPUBstv-L5KxNO9hxinogyR53t_gSlZjuUjXYW-_usY62d_5s-Z9DLT` (since 23 Nov 2026).
+
 ## Changing the code later
 
 1. Open the sheet → **Extensions → Apps Script**, paste the new `Code.gs`, press Ctrl+S.
