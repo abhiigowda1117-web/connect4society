@@ -333,32 +333,63 @@ function buildSlot(slot) {
       <label>📄 Add certificate<input type="file" accept="image/*,.pdf,application/pdf"></label>
     </div>
     <div class="thumbs"></div>
-    <div class="cert"></div>`;
+    <div class="cert"></div>
+    <div class="cert note" role="status" style="color:var(--red)"></div>`;
   box.querySelector("h3").textContent = slot.name;
   const [photoIn, certIn] = box.querySelectorAll("input");
   photoIn.addEventListener("change", () => { addPhotos(slot, [...photoIn.files]); photoIn.value = ""; });
-  certIn.addEventListener("change", () => {
+  certIn.addEventListener("change", async () => {
     const f = certIn.files[0]; certIn.value = "";
-    if (f && f.size > MAX_FILE) { alertSlot(slot, "Certificate is over 10 MB."); return; }
-    slot.cert = f || null; render(slot);
+    if (!f) return;
+    const pdf = normType(f) === "application/pdf";
+    if (!pdf && !isImage(f)) { alertSlot(slot, `"${f.name}" is not a photo or PDF. Upload the certificate as an image or PDF.`); return; }
+    let file = f;
+    if (!pdf && f.size > 2 * 1048576) {   // big certificate photo: shrink, but keep text sharp
+      const bmp = await decode(f);
+      if (bmp) {
+        const w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight, k = Math.min(1, 2400 / Math.max(w, h));
+        const c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+        c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+        const b = await new Promise(r => c.toBlob(r, "image/jpeg", 0.9));
+        if (b) file = new File([b], f.name.replace(/\.[^.]+$/, "") + ".jpg", {type: "image/jpeg"});
+      }
+    }
+    if (file.size > MAX_FILE) { alertSlot(slot, `Certificate "${f.name}" is ${mb(f.size)}. It must be under 10 MB.`); return; }
+    slot.cert = file; render(slot);
   });
   slot.el = box;
   render(slot);
   return box;
 }
 
-function alertSlot(slot, text) { slot.el.querySelector(".cert").textContent = text; }
+function alertSlot(slot, text) { slot.el.querySelector(".note").textContent = text; }
+
+const IMG_EXT = /\.(jpe?g|jfif|png|webp|heic|heif|gif|bmp)$/i;
+const isImage = f => /^image\//.test(f.type) || IMG_EXT.test(f.name || "");
 
 function addPhotos(slot, files) {
   const room = MAX - slot.photos.length;
-  const imgs = files.filter(f => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
+  const imgs = files.filter(isImage);
+  const skipped = files.length - imgs.length;
   imgs.slice(0, room).forEach(file => {
     const p = {file, blob: null, url: URL.createObjectURL(file)};
-    p.ready = shrink(file).then(b => { p.blob = b; render(slot); });
+    p.ready = shrink(file).then(b => {
+      p.blob = b;
+      if (!b) {
+        // Could not be read or made small enough: take it out now, not at Submit.
+        const i = slot.photos.indexOf(p);
+        if (i >= 0) { URL.revokeObjectURL(p.url); slot.photos.splice(i, 1); }
+        render(slot);
+        alertSlot(slot, `"${file.name}" can't be used (${mb(file.size)}, unreadable format). Choose a different photo or take a screenshot of it.`);
+        return;
+      }
+      render(slot);
+    });
     slot.photos.push(p);
   });
   render(slot);
   if (imgs.length > room) alertSlot(slot, "Only " + MAX + " photos per activity. Extra photos were skipped.");
+  else if (skipped) alertSlot(slot, skipped + " file(s) skipped because they are not photos.");
 }
 
 function render(slot) {
@@ -382,21 +413,50 @@ function render(slot) {
   c.innerHTML = slot.cert ? "Certificate: <strong></strong>" : "";
   if (slot.cert) c.querySelector("strong").textContent = slot.cert.name;
   if (slots.every(s => s.photos.length >= MIN && s.cert)) msg($("submitMsg"), "");
+  if (n === 0) alertSlot(slot, "");
 }
 
-/** Resizes a photo to JPEG. Falls back to the original file if the browser can't decode it (e.g. HEIC). */
+/** Decodes an image file to a bitmap; HEIC/HEIF (iPhone, some Samsung) is converted first. */
+async function decode(file) {
+  try { return await createImageBitmap(file, {imageOrientation: "from-image"}); } catch (e) { /* try below */ }
+  try {  // <img> decoding works for some formats createImageBitmap rejects
+    const url = URL.createObjectURL(file);
+    const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+    return img;
+  } catch (e) { /* try below */ }
+  if (/heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name || "")) {
+    try {
+      if (!window.heic2any) await new Promise((ok, bad) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+        s.onload = ok; s.onerror = bad; document.head.append(s);
+      });
+      const out = await window.heic2any({blob: file, toType: "image/jpeg", quality: 0.9});
+      return await createImageBitmap(Array.isArray(out) ? out[0] : out);
+    } catch (e) { /* give up */ }
+  }
+  return null;
+}
+
+/**
+ * Returns a JPEG no longer than MAX_SIDE on its longer side, or the original when it is already a
+ * small JPEG/PNG. Returns null when the photo can't be read and is too big or in an odd format.
+ */
 async function shrink(file) {
-  try {
-    const bmp = await createImageBitmap(file, {imageOrientation: "from-image"});
-    const scale = Math.min(1, MAX_SIDE / Math.max(bmp.width, bmp.height));
+  const bmp = await decode(file);
+  if (bmp) {
+    const w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight;
+    const scale = Math.min(1, MAX_SIDE / Math.max(w, h));
     const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+    canvas.width = Math.round(w * scale); canvas.height = Math.round(h * scale);
     canvas.getContext("2d").drawImage(bmp, 0, 0, canvas.width, canvas.height);
     bmp.close && bmp.close();
     const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", JPEG_QUALITY));
-    if (blob && blob.size < file.size) return blob;
-  } catch (e) { /* use the original */ }
-  return file;
+    const plain = /^image\/(jpeg|png)$/.test(normType(file));
+    if (blob && !(plain && file.size <= blob.size)) return blob;
+  }
+  // Not decodable: send as-is only if it is a normal photo type and small enough.
+  return /^image\/(jpeg|png|webp)$/.test(normType(file)) && file.size <= MAX_FILE * 0.7 ? file : null;
 }
 
 // ---- Submit ----
@@ -419,6 +479,8 @@ $("uploadForm").addEventListener("submit", async e => {
   try {
     msg($("progressTxt"), "Preparing photos…");
     await Promise.all(slots.flatMap(s => s.photos.map(p => p.ready)));
+    const gone = slots.find(s => s.photos.length < MIN);
+    if (gone) { gone.el.scrollIntoView({behavior: "smooth", block: "center"}); throw new Error(`A photo for "${gone.name}" couldn't be used, so it now has fewer than ${MIN}. Add another photo.`); }
     const {token} = await retry(() => api("POST", {action: "start", usn: student.usn}));
 
     // Build the upload queue.
@@ -426,10 +488,10 @@ $("uploadForm").addEventListener("submit", async e => {
     const files = {};
     slots.forEach(s => {
       files[s.key] = {photos: [], cert: ""};
-      s.photos.forEach((p, i) => jobs.push({slot: s.key, blob: p.blob, name: `${student.usn}_${s.key}_${i + 1}.jpg`.replace(/\.jpg$/, ext(p.blob)), put: id => files[s.key].photos[i] = id}));
-      if (s.cert) jobs.push({slot: s.key, blob: s.cert, name: "certificate_" + s.cert.name, put: id => files[s.key].cert = id});
+      s.photos.forEach((p, i) => jobs.push({slot: s.key, blob: p.blob, label: `photo ${i + 1} of "${s.name}" (${p.file.name})`, name: `${student.usn}_${s.key}_${i + 1}${ext(p.blob)}`, put: id => files[s.key].photos[i] = id}));
+      if (s.cert) jobs.push({slot: s.key, blob: s.cert, label: `the certificate for "${s.name}" (${s.cert.name})`, name: "certificate_" + s.cert.name, put: id => files[s.key].cert = id});
     });
-    if (college() && tpl) { files.template = []; jobs.push({slot: "template", blob: tpl, name: tpl.name, put: id => files.template.push(id)}); }
+    if (college() && tpl) { files.template = []; jobs.push({slot: "template", blob: tpl, label: `the college template (${tpl.name})`, name: tpl.name, put: id => files.template.push(id)}); }
 
     let done = 0;
     const tick = () => { $("bar").style.width = (done / jobs.length * 100) + "%"; msg($("progressTxt"), `Uploaded ${done} of ${jobs.length} files`); };
@@ -438,9 +500,18 @@ $("uploadForm").addEventListener("submit", async e => {
     async function worker() {
       while (next < jobs.length) {
         const job = jobs[next++];
-        const data = await b64(job.blob);
-        const r = await retry(() => api("POST", {action: "upload", token, slot: job.slot, name: job.name, type: mime(job.blob), data}));
-        job.put(r.id);
+        let id = uploaded.get(job.blob);   // already sent on an earlier Submit press
+        if (!id) {
+          try {
+            const data = await b64(job.blob);
+            id = (await retry(() => api("POST", {action: "upload", token, slot: job.slot, name: job.name, type: mime(job.blob), data}))).id;
+            uploaded.set(job.blob, id);
+          } catch (err) {
+            report("upload", err.message, job.blob, job.label);
+            throw new Error(`Couldn't upload ${job.label}: ${err.message === "Failed to fetch" ? "the connection dropped" : err.message}.`);
+          }
+        }
+        job.put(id);
         done++; tick();
       }
     }
@@ -458,7 +529,10 @@ $("uploadForm").addEventListener("submit", async e => {
     $("doneMsg").append(`${r.photos} photos and ${slots.length} ${slots.length === 1 ? "certificate" : "certificates"} for ${slots.length} ${slots.length === 1 ? "activity" : "activities"} were received for ${student.usn}. Your report will be prepared from these. You can close this page.`);
     window.scrollTo({top: 0, behavior: "smooth"});
   } catch (err) {
-    msg(box, (err.message === "Failed to fetch" ? "The connection dropped." : err.message) + " Nothing was recorded yet, so you can press Submit again.", "error");
+    if (!/^Couldn't upload/.test(err.message)) report("submit", err.message);
+    msg(box, (err.message === "Failed to fetch" ? "The connection dropped." : err.message) +
+      " Your submission is not complete yet. If it says a photo can't be used, remove it (×) and add another, then press Submit again." +
+      " If it keeps failing, use Wi-Fi or another phone, or send a screenshot of this message to Connect4Society.", "error");
   } finally {
     lock(false);
   }
@@ -473,10 +547,31 @@ function lock(on) {
 function b64(blob) {
   return new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = bad; r.readAsDataURL(blob); });
 }
-function mime(blob) {
-  if (blob.type) return blob.type;
+/** A file's type in the form the server accepts, worked out from its name when the phone gives an odd or empty type. */
+function normType(blob) {
+  let t = (blob.type || "").toLowerCase();
+  if (t === "image/jpg" || t === "image/pjpeg" || t === "image/jfif") t = "image/jpeg";
+  if (t && t !== "application/octet-stream" && t !== "binary/octet-stream") return t;
   const n = (blob.name || "").toLowerCase();
-  return n.endsWith(".heic") ? "image/heic" : n.endsWith(".heif") ? "image/heif" : n.endsWith(".pdf") ? "application/pdf" : "image/jpeg";
+  const byExt = {jpg: "image/jpeg", jpeg: "image/jpeg", jfif: "image/jpeg", png: "image/png", webp: "image/webp",
+    heic: "image/heic", heif: "image/heif", pdf: "application/pdf", doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"};
+  return byExt[(n.match(/\.([a-z0-9]+)$/) || [])[1]] || "image/jpeg";
+}
+const mime = normType;
+
+/** Tells the organisers' sheet about a failure (best effort; never blocks the student). */
+// Files that reached Drive, so pressing Submit again does not send them twice.
+// The student's Drive folders stay the same between presses, so the ids remain valid.
+const uploaded = new WeakMap();
+
+function report(stage, message, blob, label) {
+  try {
+    fetch(BACKEND_URL, {method: "POST", redirect: "follow", headers: {"Content-Type": "text/plain;charset=utf-8"},
+      body: JSON.stringify({action: "log", usn: student && student.usn, stage, message: String(message).slice(0, 500),
+        file: label || (blob && blob.name) || "", type: blob ? (blob.type || "") : "", size: blob ? blob.size : "",
+        device: navigator.userAgent.slice(0, 300)})}).catch(() => {});
+  } catch (e) { /* ignore */ }
 }
 function ext(blob) {
   return ({"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic", "image/heif": ".heif"})[mime(blob)] || ".jpg";

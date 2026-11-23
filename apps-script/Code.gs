@@ -70,6 +70,7 @@ function doPost(e) {
       case "start":  return json_(start_(data));
       case "upload": return json_(upload_(data));
       case "submit": return json_(submit_(data));
+      case "log":    return json_(log_(data));
       case undefined:
       case "":
       case "register": return json_(register_(data));
@@ -163,7 +164,7 @@ function upload_(d) {
   const folderId = state.folders[d.slot];
   if (!folderId) return fail_("Unknown activity.");
   const type = String(d.type || "");
-  if (ALLOWED_TYPES.indexOf(type) < 0) return fail_("That file type is not accepted: " + type);
+  if (ALLOWED_TYPES.indexOf(type) < 0 && !/^image\//.test(type)) return fail_("That file type is not accepted: " + type);
 
   const bytes = Utilities.base64Decode(String(d.data || ""));
   if (!bytes.length) return fail_("The file was empty.");
@@ -225,6 +226,15 @@ function submit_(d) {
   }
   CacheService.getScriptCache().remove("up_" + d.token);
   return {success: true, photos: total};
+}
+
+/** Records a failed upload in the "Upload problems" tab so organisers can see what went wrong. */
+function log_(d) {
+  const sh = sheet_("Upload problems", ["Timestamp", "USN", "Step", "Error", "File", "File type", "Size (KB)", "Phone / browser"]);
+  if (sh.getLastRow() > 5000) return {success: true};
+  sh.appendRow([new Date(), normUsn_(d.usn), clean_(d.stage, 20), clean_(d.message, 500), clean_(d.file, 150),
+    clean_(d.type, 80), d.size ? Math.round(Number(d.size) / 1024) : "", clean_(d.device, 300)]);
+  return {success: true};
 }
 
 // ---- Helpers --------------------------------------------------------------
